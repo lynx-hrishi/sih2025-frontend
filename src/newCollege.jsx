@@ -119,7 +119,7 @@ export default function College() {
       console.error("Network error:", err);
       setMessages((prev) => [
         ...prev,
-        { from: "bot", text: "Recieved" },
+        { from: "bot", text: "⚠️ Something went wrong." },
       ]);
     }
   };
