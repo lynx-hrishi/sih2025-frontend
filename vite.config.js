@@ -8,9 +8,9 @@ export default defineConfig({
     tailwindcss()
 ],
   server: {
-    allowedHosts: ["a4c4d2f8d8c8.ngrok-free.app"],
+    allowedHosts: ["12f2fceccab1.ngrok-free.app"],
     proxy: {
-      "/api": "https://sih2025-backend-syn-sup.vercel.app",
+      "/api": "https://tone-bring-grill-fcc.trycloudflare.com",
       "/products": "http://localhost:3000",
       "/events": "http://localhost:3000"
     }

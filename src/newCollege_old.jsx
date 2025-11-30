@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { marked } from "marked";
+import ReactMarkdown from "react-markdown";
 import socket, { client_id } from "./Socket_Connector";
 
 export default function College() {
@@ -27,80 +27,6 @@ export default function College() {
     const [uploadedFiles, setUploadedFiles] = useState([]);
     const [shouldShowStreamMenu, setShouldShowStreamMenu] = useState(false);
     const fileInputRef = useRef(null);
-    const isAwaitingResponseRef = useRef(false);
-    const [socketMessage, setSocketMessage] = useState(null);
-    const [loading, setLoading] = useState(false);
-
-    function markdownToText(md) {
-  const html = marked.parse(md);
-
-  // Convert HTML → usable text with formatting
-  const temp = document.createElement("div");
-  temp.innerHTML = html;
-
-  // Walk through nodes and reconstruct clean readable text
-  function walk(node) {
-    let out = "";
-
-    node.childNodes.forEach(n => {
-      if (n.nodeType === Node.TEXT_NODE) {
-        out += n.textContent;
-      }
-
-      // Paragraphs
-      else if (n.nodeName === "P") {
-        out += walk(n) + "\n\n";
-      }
-
-      // Lists
-      else if (n.nodeName === "UL") {
-        out += walk(n);
-      }
-
-      else if (n.nodeName === "LI") {
-        out += "• " + walk(n) + "\n";
-      }
-
-      // Headings
-      else if (/H[1-6]/.test(n.nodeName)) {
-        out += walk(n) + "\n\n";
-      }
-
-      // Strong / Bold
-      else if (n.nodeName === "STRONG" || n.nodeName === "B") {
-        out += walk(n);
-      }
-
-      // Emphasis
-      else if (n.nodeName === "EM" || n.nodeName === "I") {
-        out += walk(n);
-      }
-
-      // Line breaks
-      else if (n.nodeName === "BR") {
-        out += "\n";
-      }
-
-      // Code blocks
-      else if (n.nodeName === "PRE") {
-        out += "\n```\n" + n.textContent.trim() + "\n```\n\n";
-      }
-
-      // Inline code
-      else if (n.nodeName === "CODE") {
-        out += "`" + n.textContent.trim() + "`";
-      }
-
-      else {
-        out += walk(n);
-      }
-    });
-
-    return out;
-  }
-
-  return walk(temp).replace(/\n{3,}/g, "\n\n").trim();
-}
 
     // CONTACT STAFF / EMAIL PROMPT
     const [showContactBtn, setShowContactBtn] = useState({
@@ -113,7 +39,7 @@ export default function College() {
     // Auto-scroll on messages change
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages, selectedStream, socketMessage]);
+    }, [messages, selectedStream]);
 
     useEffect(() => {
         socket.onopen = () => {
@@ -121,11 +47,7 @@ export default function College() {
         }
 
         socket.onmessage = (event) => {
-            if (isAwaitingResponseRef.current) {
-                const data = JSON.parse(event.data);
-                setSocketMessage(data.message);
-                setLoading(true);
-            }
+            console.log(event.data)
         }
 
         socket.onerror = (err) => {
@@ -192,8 +114,6 @@ export default function College() {
     const sendMessage = async () => {
         if (!input.trim() && uploadedFiles.length === 0) return;
 
-        isAwaitingResponseRef.current = true;
-
         const text = input.trim();
         setMessages((prev) => [...prev, { from: "user", text: text || "(file)" }]);
         setInput("");
@@ -223,9 +143,6 @@ export default function College() {
             setShowContactBtn({ visible: true, color: "bg-blue-600 hover:bg-blue-700", text: "Contact Staff?" });
         } finally {
             setUploadedFiles([]);
-            isAwaitingResponseRef.current = false;
-            setLoading(false);
-            setSocketMessage(null);
         }
     };
 
@@ -516,18 +433,11 @@ export default function College() {
                                 {(
                                     messages.map((msg, idx) => (
                                         <div key={idx} className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"}`}>
-                                            <div className={`p-3 rounded-lg text-sm break-words inline-block max-w-[85%] whitespace-pre-line ${msg.from === "bot" ? "bg-gray-100 font-medium text-gray-700" : "bg-blue-600 font-medium text-white"}`}>
-                                                {markdownToText(msg.text)}
+                                            <div className={`p-3 rounded-lg text-sm break-words inline-block max-w-[85%] ${msg.from === "bot" ? "bg-gray-100 font-medium text-gray-700" : "bg-blue-600 font-medium text-white"}`}>
+                                                {msg.text}
                                             </div>
                                         </div>
                                     ))
-                                )}
-                                {loading && socketMessage && (
-                                    <div className="flex justify-start">
-                                        <div className="p-3 rounded-lg text-sm break-words inline-block max-w-[85%] bg-gray-100 font-medium text-gray-700 backdrop-blur-sm bg-white/30">
-                                            {socketMessage}
-                                        </div>
-                                    </div>
                                 )}
                                 {shouldShowStreamMenu && (
                                     <div className="flex flex-col gap-3 p-3">
