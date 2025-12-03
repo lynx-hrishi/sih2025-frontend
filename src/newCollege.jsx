@@ -30,6 +30,7 @@ export default function College() {
     const isAwaitingResponseRef = useRef(false);
     const [socketMessage, setSocketMessage] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [contactedStaff, setContactedStaff] = useState(false);
 
     function markdownToText(md) {
   const html = marked.parse(md);
@@ -125,6 +126,11 @@ export default function College() {
                 const data = JSON.parse(event.data);
                 setSocketMessage(data.message);
                 setLoading(true);
+                if (data.type === "contact_staff"){
+                    setContactedStaff(true);
+                    setShowContactBtn({ visible: true, color: "bg-green-600 hover:bg-green-700", text: "Request Received!!" });
+                    console.log("changing the button")
+                }
             }
         }
 
@@ -217,7 +223,6 @@ export default function College() {
                 text.toLowerCase().includes("hello") ||
                 text.toLowerCase().includes("hii")
             ) { console.log("true"); setShouldShowStreamMenu(true); }
-            setShowContactBtn({ visible: true, color: "bg-blue-600 hover:bg-blue-700", text: "Contact Staff?" });
         } catch (err) {
             setMessages((prev) => [...prev, { from: "bot", text: "Sorry — failed to reach the server." }]);
             setShowContactBtn({ visible: true, color: "bg-blue-600 hover:bg-blue-700", text: "Contact Staff?" });
